@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { 
   Container, 
   Typography, 
@@ -36,6 +37,7 @@ import {
 import api from '../services/api';
 
 const SchoolYears = () => {
+  const navigate = useNavigate();
   const [schoolYears, setSchoolYears] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -52,7 +54,22 @@ const SchoolYears = () => {
   const fetchSchoolYears = async () => {
     try {
       const response = await api.get('/schools');
-      setSchoolYears(response.data);
+      const years = response.data;
+
+      // For each semester, fetch class count
+      const yearsWithCounts = await Promise.all(years.map(async (year) => {
+        const semestersWithCounts = await Promise.all((year.semesters || []).map(async (semester) => {
+          try {
+            const classRes = await api.get(`/classes?schoolYearId=${year._id}&semester=${semester.name}`);
+            return { ...semester, classCount: classRes.data.length };
+          } catch {
+            return { ...semester, classCount: 0 };
+          }
+        }));
+        return { ...year, semesters: semestersWithCounts };
+      }));
+
+      setSchoolYears(yearsWithCounts);
     } catch (err) {
       setError('Failed to load school years');
       console.error('Error fetching school years:', err);
@@ -215,17 +232,14 @@ const SchoolYears = () => {
                           <ClassIcon sx={{ mr: 2 }} />
                           <ListItemText 
                             primary={`${semester.name} Semester`}
-                            secondary={`${semester.classes?.length || 0} classes`}
+                            secondary={`${semester.classCount ?? semester.classes?.length ?? 0} classes`}
                           />
                           <ListItemSecondaryAction>
                             <Button
                               variant="outlined"
                               size="small"
                               sx={{ mr: 1 }}
-                              onClick={() => {
-                                // Navigate to classes for this semester
-                                window.location.href = `/classes?schoolYear=${year._id}&semester=${semester._id}`;
-                              }}
+                              onClick={() => navigate(`/classes?schoolYear=${year._id}&semester=${semester._id}`)}
                             >
                               Manage Classes
                             </Button>
