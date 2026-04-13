@@ -95,24 +95,34 @@ public class RegisterActivity extends AppCompatActivity {
             @Override
             public void onResponse(Call<ApiService.ApiResponse<Student>> call, Response<ApiService.ApiResponse<Student>> response) {
                 setLoading(false);
-                
+
                 if (response.isSuccessful() && response.body() != null) {
-                    ApiService.ApiResponse<Student> apiResponse = response.body();
-                    
-                    if (apiResponse.success) {
-                        Toast.makeText(RegisterActivity.this, 
-                            getString(R.string.success_register), Toast.LENGTH_LONG).show();
-                        
-                        // Navigate to login
-                        Intent intent = new Intent(RegisterActivity.this, LoginActivity.class);
-                        intent.putExtra("student_id", studentId);
-                        startActivity(intent);
-                        finish();
-                    } else {
-                        showError(apiResponse.message != null ? apiResponse.message : "Registration failed");
-                    }
+                    // Backend returns { message: "Registration successful", student: {...} }
+                    // Registration is successful if we get HTTP 201
+                    Toast.makeText(RegisterActivity.this,
+                        getString(R.string.success_register), Toast.LENGTH_LONG).show();
+
+                    Intent intent = new Intent(RegisterActivity.this, LoginActivity.class);
+                    intent.putExtra("student_id", studentId);
+                    startActivity(intent);
+                    finish();
                 } else {
-                    showError("Registration failed. Please try again.");
+                    // Try to parse error message
+                    try {
+                        String errorBody = response.errorBody() != null ? response.errorBody().string() : "Registration failed";
+                        // Extract message from JSON if possible
+                        if (errorBody.contains("\"message\"")) {
+                            int start = errorBody.indexOf("\"message\"") + 11;
+                            int end = errorBody.indexOf("\"", start + 1);
+                            if (end > start) {
+                                showError(errorBody.substring(start, end));
+                                return;
+                            }
+                        }
+                        showError("Registration failed. " + errorBody);
+                    } catch (Exception e) {
+                        showError("Registration failed. Please try again.");
+                    }
                 }
             }
 
@@ -158,9 +168,12 @@ public class RegisterActivity extends AppCompatActivity {
             isValid = false;
         }
 
-        // Validate Year
+        // Validate Year - must be 1st, 2nd, 3rd, 4th, or 5th
         if (TextUtils.isEmpty(year)) {
             tilYear.setError(getString(R.string.field_required));
+            isValid = false;
+        } else if (!year.matches("^[1-5](st|nd|rd|th)$")) {
+            tilYear.setError("Enter: 1st, 2nd, 3rd, 4th, or 5th");
             isValid = false;
         }
 

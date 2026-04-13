@@ -129,9 +129,10 @@
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
                         android:layout_marginEnd="8dp"
-                        android:hint="@string/year"
+                        android:hint="Year (1st-4th)"
                         app:startIconDrawable="@drawable/ic_calendar"
-                        app:errorEnabled="true">
+                        app:errorEnabled="true"
+                        app:helperText="e.g. 1st, 2nd">
 
                         <com.google.android.material.textfield.TextInputEditText
                             android:id="@+id/etYear"

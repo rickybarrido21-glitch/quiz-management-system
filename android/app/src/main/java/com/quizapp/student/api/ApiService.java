@@ -130,6 +130,8 @@ public interface ApiService {
         public String message;
         public T data;
         public boolean success;
+        // Also handle direct student field in response
+        public T student;
     }
 
     class QuizTakeResponse {
