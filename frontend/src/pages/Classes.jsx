@@ -33,7 +33,7 @@ import {
   Group as GroupIcon,
   Quiz as QuizIcon
 } from '@mui/icons-material';
-import axios from 'axios';
+import api from '../services/api';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 
 const Classes = () => {
@@ -124,7 +124,7 @@ const Classes = () => {
           headers: { Authorization: `Bearer ${token}` }
         });
       } else {
-        await axios.post('/api/classes', classData, {
+        await api.post('/classes', classData, {
           headers: { Authorization: `Bearer ${token}` }
         });
       }

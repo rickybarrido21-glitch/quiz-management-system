@@ -36,7 +36,7 @@ import {
   School as SchoolIcon,
   Remove as RemoveIcon
 } from '@mui/icons-material';
-import axios from 'axios';
+import api from '../services/api';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 
 function TabPanel({ children, value, index, ...other }) {

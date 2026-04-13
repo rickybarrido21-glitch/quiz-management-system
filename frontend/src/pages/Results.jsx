@@ -31,7 +31,7 @@ import {
   CheckCircle as CheckCircleIcon,
   Cancel as CancelIcon
 } from '@mui/icons-material';
-import axios from 'axios';
+import api from '../services/api';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 
 const Results = () => {

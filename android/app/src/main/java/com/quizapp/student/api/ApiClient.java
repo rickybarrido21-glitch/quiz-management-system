@@ -8,7 +8,7 @@ import retrofit2.converter.gson.GsonConverterFactory;
 import java.util.concurrent.TimeUnit;
 
 public class ApiClient {
-    private static final String BASE_URL = "http://192.168.0.82:3000/api/"; // Your server IP
+    private static final String BASE_URL = "https://quiz-management-system-8xuf.onrender.com/api/"; // Your server IP
     // Use "http://10.0.2.2:3000/api/" for Android emulator if needed
     
     private static Retrofit retrofit = null;

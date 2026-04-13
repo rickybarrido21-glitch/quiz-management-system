@@ -33,7 +33,7 @@ import {
   School as SchoolIcon,
   Class as ClassIcon
 } from '@mui/icons-material';
-import axios from 'axios';
+import api from '../services/api';
 
 const SchoolYears = () => {
   const [schoolYears, setSchoolYears] = useState([]);
@@ -51,10 +51,7 @@ const SchoolYears = () => {
 
   const fetchSchoolYears = async () => {
     try {
-      const token = localStorage.getItem('token');
-      const response = await axios.get('/api/schools', {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      const response = await api.get('/schools');
       setSchoolYears(response.data);
     } catch (err) {
       setError('Failed to load school years');
@@ -79,18 +76,11 @@ const SchoolYears = () => {
     }
 
     try {
-      const token = localStorage.getItem('token');
-      
       if (editingYear) {
-        await axios.put(`/api/schools/${editingYear._id}`, formData, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
+        await api.put(`/schools/${editingYear._id}`, formData);
       } else {
-        await axios.post('/api/schools', formData, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
+        await api.post('/schools', formData);
       }
-      
       fetchSchoolYears();
       handleCloseDialog();
       setError('');
@@ -101,12 +91,8 @@ const SchoolYears = () => {
 
   const handleDelete = async (yearId) => {
     if (!window.confirm('Are you sure you want to delete this school year?')) return;
-    
     try {
-      const token = localStorage.getItem('token');
-      await axios.delete(`/api/schools/${yearId}`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      await api.delete(`/schools/${yearId}`);
       fetchSchoolYears();
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to delete school year');
@@ -127,11 +113,7 @@ const SchoolYears = () => {
 
   const handleAddSemester = async (schoolYearId, semesterType) => {
     try {
-      const token = localStorage.getItem('token');
-      await axios.post(`/api/schools/${schoolYearId}/semesters`, 
-        { name: semesterType },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+      await api.post(`/schools/${schoolYearId}/semesters`, { name: semesterType });
       fetchSchoolYears();
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to add semester');
@@ -140,12 +122,8 @@ const SchoolYears = () => {
 
   const handleDeleteSemester = async (schoolYearId, semesterId) => {
     if (!window.confirm('Are you sure you want to delete this semester?')) return;
-    
     try {
-      const token = localStorage.getItem('token');
-      await axios.delete(`/api/schools/${schoolYearId}/semesters/${semesterId}`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      await api.delete(`/schools/${schoolYearId}/semesters/${semesterId}`);
       fetchSchoolYears();
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to delete semester');
