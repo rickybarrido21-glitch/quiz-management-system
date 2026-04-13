@@ -100,29 +100,18 @@ public class MainActivity extends AppCompatActivity implements SubjectAdapter.On
     }
     
     private void loadSubjects() {
-        String studentId = preferenceManager.getStudentId();
-        
-        Call<Student> call = apiService.getStudentProfile(studentId);
-        call.enqueue(new Callback<Student>() {
+        Call<ApiService.MyClassesResponse> call = apiService.getMyClasses();
+        call.enqueue(new Callback<ApiService.MyClassesResponse>() {
             @Override
-            public void onResponse(Call<Student> call, Response<Student> response) {
+            public void onResponse(Call<ApiService.MyClassesResponse> call, Response<ApiService.MyClassesResponse> response) {
                 if (response.isSuccessful() && response.body() != null) {
-                    Student student = response.body();
-                    List<Subject> subjects = new ArrayList<>();
-                    
-                    if (student.getSubjects() != null) {
-                        for (Student.SubjectEnrollment enrollment : student.getSubjects()) {
-                            if (enrollment.isVerified()) {
-                                subjects.add(enrollment.getSubject());
-                            }
-                        }
-                    }
-                    
-                    subjectAdapter.updateSubjects(subjects);
-                    
-                    // Show/hide empty state
+                    List<Subject> classes = response.body().classes;
+                    if (classes == null) classes = new ArrayList<>();
+
+                    subjectAdapter.updateSubjects(classes);
+
                     LinearLayout layoutEmptyState = findViewById(R.id.layoutEmptyState);
-                    if (subjects.isEmpty()) {
+                    if (classes.isEmpty()) {
                         layoutEmptyState.setVisibility(View.VISIBLE);
                         recyclerViewSubjects.setVisibility(View.GONE);
                     } else {
@@ -130,12 +119,12 @@ public class MainActivity extends AppCompatActivity implements SubjectAdapter.On
                         recyclerViewSubjects.setVisibility(View.VISIBLE);
                     }
                 } else {
-                    Toast.makeText(MainActivity.this, "Failed to load subjects", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(MainActivity.this, "Failed to load classes", Toast.LENGTH_SHORT).show();
                 }
             }
-            
+
             @Override
-            public void onFailure(Call<Student> call, Throwable t) {
+            public void onFailure(Call<ApiService.MyClassesResponse> call, Throwable t) {
                 Toast.makeText(MainActivity.this, "Network error: " + t.getMessage(), Toast.LENGTH_SHORT).show();
             }
         });

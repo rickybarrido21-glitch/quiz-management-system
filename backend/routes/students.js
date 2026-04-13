@@ -90,48 +90,32 @@ router.get('/my-classes', auth, async (req, res) => {
   try {
     const studentId = req.user.userId;
 
-    // Verify user is a student
-    const student = await User.findById(studentId);
-    if (!student || student.role !== 'student') {
-      return res.status(403).json({ 
-        success: false,
-        message: 'Only students can view enrolled classes' 
-      });
-    }
-
-    // Get approved enrollment requests
+    // Get approved enrollment requests for this student
     const enrollments = await EnrollmentRequest.find({
       studentId: studentId,
       status: 'approved'
     }).populate({
       path: 'classId',
-      populate: {
-        path: 'teacherId',
-        select: 'fullName email'
-      }
+      populate: { path: 'teacherId', select: 'fullName email' }
     });
 
-    const classes = enrollments.map(enrollment => ({
-      id: enrollment.classId._id,
-      courseCode: enrollment.classId.courseCode,
-      courseDescription: enrollment.classId.courseDescription,
-      year: enrollment.classId.year,
-      section: enrollment.classId.section,
-      classCode: enrollment.classId.classCode,
-      teacher: enrollment.classId.teacherId.fullName,
-      enrolledAt: enrollment.processedAt
-    }));
+    const classes = enrollments
+      .filter(e => e.classId) // skip if class was deleted
+      .map(enrollment => ({
+        id: enrollment.classId._id,
+        courseCode: enrollment.classId.courseCode,
+        courseDescription: enrollment.classId.courseDescription,
+        year: enrollment.classId.year,
+        section: enrollment.classId.section,
+        classCode: enrollment.classId.classCode,
+        teacher: enrollment.classId.teacherId?.fullName || '',
+        enrolledAt: enrollment.processedAt
+      }));
 
-    res.json({
-      success: true,
-      classes: classes
-    });
+    res.json({ success: true, classes });
   } catch (error) {
     console.error('Get classes error:', error);
-    res.status(500).json({ 
-      success: false,
-      message: 'Server error retrieving classes' 
-    });
+    res.status(500).json({ success: false, message: 'Server error retrieving classes' });
   }
 });
 

@@ -37,6 +37,15 @@ public interface ApiService {
     @POST("students/enroll")
     Call<ApiService.ApiResponse<String>> joinClass(@Body JoinClassRequest request);
 
+    // Get my enrolled classes (approved)
+    @GET("students/my-classes")
+    Call<MyClassesResponse> getMyClasses();
+
+    class MyClassesResponse {
+        public boolean success;
+        public List<com.quizapp.student.models.Subject> classes;
+    }
+
     class JoinClassRequest {
         public String classCode;
         public JoinClassRequest(String classCode) {
