@@ -34,9 +34,7 @@ import {
   Quiz as QuizIcon
 } from '@mui/icons-material';
 import api from '../services/api';
-import { useSearchParams, useNavigate } from 'react-router-dom';
-
-const Classes = () => {
+import { useSearchParams, useNavigate } from 'react-router-dom';const Classes = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const schoolYearId = searchParams.get('schoolYear');
@@ -70,13 +68,8 @@ const Classes = () => {
 
   const fetchClasses = async () => {
     try {
-      const token = localStorage.getItem('token');
-      // Wait for semester to be loaded before making the API call
       if (!semester) return;
-      
-      const response = await axios.get(`/api/classes?schoolYearId=${schoolYearId}&semester=${semester.name}`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      const response = await api.get(`/classes?schoolYearId=${schoolYearId}&semester=${semester.name}`);
       setClasses(response.data);
     } catch (err) {
       setError('Failed to load classes');
@@ -88,10 +81,7 @@ const Classes = () => {
 
   const fetchSchoolYearInfo = async () => {
     try {
-      const token = localStorage.getItem('token');
-      const response = await axios.get(`/api/schools/${schoolYearId}`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      const response = await api.get(`/schools/${schoolYearId}`);
       setSchoolYear(response.data);
       const foundSemester = response.data.semesters?.find(s => s._id === semesterId);
       setSemester(foundSemester);
@@ -112,23 +102,14 @@ const Classes = () => {
     }
 
     try {
-      const token = localStorage.getItem('token');
-      const classData = {
-        ...formData,
-        schoolYearId,
-        semester: semester.name
-      };
-      
+      const classData = { ...formData, schoolYearId, semester: semester.name };
+
       if (editingClass) {
-        await axios.put(`/api/classes/${editingClass._id}`, classData, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
+        await api.put(`/classes/${editingClass._id}`, classData);
       } else {
-        await api.post('/classes', classData, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
+        await api.post('/classes', classData);
       }
-      
+
       fetchClasses();
       handleCloseDialog();
       setError('');
@@ -139,12 +120,8 @@ const Classes = () => {
 
   const handleDelete = async (classId) => {
     if (!window.confirm('Are you sure you want to delete this class?')) return;
-    
     try {
-      const token = localStorage.getItem('token');
-      await axios.delete(`/api/classes/${classId}`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      await api.delete(`/classes/${classId}`);
       fetchClasses();
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to delete class');
@@ -153,16 +130,9 @@ const Classes = () => {
 
   const handleRegenerateCode = async (classId) => {
     try {
-      const token = localStorage.getItem('token');
-      const response = await axios.patch(`/api/classes/${classId}/regenerate-code`, {}, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      
-      // Update the class in the local state
-      setClasses(classes.map(cls => 
-        cls._id === classId 
-          ? { ...cls, classCode: response.data.classCode }
-          : cls
+      const response = await api.patch(`/classes/${classId}/regenerate-code`, {});
+      setClasses(classes.map(cls =>
+        cls._id === classId ? { ...cls, classCode: response.data.classCode } : cls
       ));
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to regenerate class code');
