@@ -28,7 +28,7 @@ public class SubjectDetailActivity extends AppCompatActivity implements QuizAdap
     private QuizAdapter quizAdapter;
     private ApiService apiService;
     
-    private String subjectId;
+    private String subjectId;  // this is actually the classId
     private String subjectName;
 
     @Override
@@ -36,12 +36,13 @@ public class SubjectDetailActivity extends AppCompatActivity implements QuizAdap
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_subject_detail);
 
+        // Init apiService FIRST before anything else
+        apiService = ApiClient.getClient().create(ApiService.class);
+
         getIntentData();
         initViews();
         setupRecyclerView();
         loadQuizzes();
-        
-        apiService = ApiClient.getClient().create(ApiService.class);
     }
 
     private void getIntentData() {

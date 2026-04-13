@@ -15,13 +15,33 @@ router.get('/', auth, async (req, res) => {
       return res.status(400).json({ message: 'Class ID is required' });
     }
 
-    // Verify class exists and user has access
-    const classData = await Class.findOne({ _id: classId, teacherId: req.user.userId });
+    // Teachers see their own class quizzes; students see active quizzes for enrolled class
+    let classData;
+    if (req.user.role === 'student') {
+      // Verify student is enrolled in this class
+      const EnrollmentRequest = require('../models/EnrollmentRequest');
+      const enrollment = await EnrollmentRequest.findOne({
+        studentId: req.user.userId,
+        classId,
+        status: 'approved'
+      });
+      if (!enrollment) {
+        return res.status(403).json({ message: 'You are not enrolled in this class' });
+      }
+      classData = await Class.findById(classId);
+    } else {
+      classData = await Class.findOne({ _id: classId, teacherId: req.user.userId });
+    }
+
     if (!classData) {
       return res.status(404).json({ message: 'Class not found or access denied' });
     }
 
-    const quizzes = await Quiz.find({ classId })
+    const query = { classId };
+    // Students only see active quizzes
+    if (req.user.role === 'student') query.isActive = true;
+
+    const quizzes = await Quiz.find(query)
       .populate('teacherId', 'fullName email')
       .sort({ createdAt: -1 });
 

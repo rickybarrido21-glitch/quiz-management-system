@@ -198,8 +198,9 @@ public class MainActivity extends AppCompatActivity implements SubjectAdapter.On
     @Override
     public void onSubjectClick(Subject subject) {
         Intent intent = new Intent(this, SubjectDetailActivity.class);
+        // Pass the class ID (used to fetch quizzes) and display name
         intent.putExtra("subject_id", subject.getId());
-        intent.putExtra("subject_name", subject.getName());
+        intent.putExtra("subject_name", subject.getCourseCode() + " - " + subject.getCourseDescription());
         startActivity(intent);
     }
     
