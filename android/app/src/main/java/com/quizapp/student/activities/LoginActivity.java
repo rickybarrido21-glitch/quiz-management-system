@@ -83,14 +83,14 @@ public class LoginActivity extends AppCompatActivity {
             @Override
             public void onResponse(Call<ApiService.ApiResponse<Student>> call, Response<ApiService.ApiResponse<Student>> response) {
                 setLoading(false);
-                
+
                 if (response.isSuccessful() && response.body() != null) {
                     ApiService.ApiResponse<Student> apiResponse = response.body();
-                    
-                    if (apiResponse.success && apiResponse.data != null) {
-                        Student student = apiResponse.data;
-                        
-                        // Save login state
+
+                    // Backend returns { student: {...} } — check both student and data fields
+                    Student student = apiResponse.student != null ? apiResponse.student : apiResponse.data;
+
+                    if (student != null) {
                         preferenceManager.setLoggedIn(true);
                         preferenceManager.setStudentInfo(
                             student.getStudentId(),
@@ -99,14 +99,27 @@ public class LoginActivity extends AppCompatActivity {
                             student.getYear(),
                             student.getSection()
                         );
-                        
+
                         Toast.makeText(LoginActivity.this, "Login successful!", Toast.LENGTH_SHORT).show();
                         navigateToMain();
                     } else {
                         showError(apiResponse.message != null ? apiResponse.message : "Login failed");
                     }
                 } else {
-                    showError("Login failed. Please check your student ID.");
+                    try {
+                        String errorBody = response.errorBody() != null ? response.errorBody().string() : "";
+                        if (errorBody.contains("\"message\"")) {
+                            int start = errorBody.indexOf("\"message\"") + 11;
+                            int end = errorBody.indexOf("\"", start + 1);
+                            if (end > start) {
+                                showError(errorBody.substring(start, end));
+                                return;
+                            }
+                        }
+                        showError("Login failed. Please check your student ID.");
+                    } catch (Exception e) {
+                        showError("Login failed. Please check your student ID.");
+                    }
                 }
             }
 
