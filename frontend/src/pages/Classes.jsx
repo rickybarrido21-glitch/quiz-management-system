@@ -70,7 +70,19 @@ import { useSearchParams, useNavigate } from 'react-router-dom';const Classes = 
     try {
       if (!semester) return;
       const response = await api.get(`/classes?schoolYearId=${schoolYearId}&semester=${semester.name}`);
-      setClasses(response.data);
+      const classesData = response.data;
+
+      // Fetch quiz count for each class
+      const classesWithCounts = await Promise.all(classesData.map(async (cls) => {
+        try {
+          const quizRes = await api.get(`/quizzes?classId=${cls._id}`);
+          return { ...cls, quizCount: quizRes.data.length };
+        } catch {
+          return { ...cls, quizCount: 0 };
+        }
+      }));
+
+      setClasses(classesWithCounts);
     } catch (err) {
       setError('Failed to load classes');
       console.error('Error fetching classes:', err);
@@ -282,7 +294,7 @@ import { useSearchParams, useNavigate } from 'react-router-dom';const Classes = 
                   />
                   <Chip 
                     icon={<QuizIcon />}
-                    label="0 Quizzes" 
+                    label={`${classItem.quizCount ?? 0} Quizzes`}
                     size="small" 
                     variant="outlined"
                   />
