@@ -287,19 +287,37 @@ const QuizBuilder = () => {
 
   const saveQuiz = async () => {
     if (!validateQuizSettings()) {
-      setActiveStep(0); // Go back to settings step
+      setActiveStep(0);
       return;
     }
 
     if (quiz.questions.length === 0) {
       setError('Quiz must have at least one question');
-      setActiveStep(1); // Go to questions step
+      setActiveStep(1);
       return;
     }
 
     setLoading(true);
     try {
-      const quizData = { ...quiz, classId };
+      // Clean questions — remove local 'id' field, keep only backend fields
+      const cleanedQuestions = quiz.questions.map(({ id, ...q }) => ({
+        type: q.type,
+        question: q.question,
+        options: q.options || [],
+        correctAnswer: q.correctAnswer || '',
+        points: q.points || 1
+      }));
+
+      const quizData = {
+        title: quiz.title,
+        description: quiz.description,
+        classId,
+        timeLimit: quiz.timeLimit,
+        randomizeQuestions: quiz.randomizeQuestions,
+        availableFrom: quiz.availableFrom || null,
+        availableUntil: quiz.availableUntil || null,
+        questions: cleanedQuestions
+      };
 
       if (quizId) {
         await api.put(`/quizzes/${quizId}`, quizData);
@@ -309,12 +327,12 @@ const QuizBuilder = () => {
         setSuccess('Quiz created successfully');
       }
 
-      // Navigate back after a short delay to show success message
       setTimeout(() => {
         navigate(`/quizzes?classId=${classId}`);
       }, 1500);
     } catch (err) {
-      setError(err.response?.data?.message || 'Failed to save quiz');
+      console.error('Save quiz error:', err.response?.data);
+      setError(err.response?.data?.message || err.response?.data?.errors?.[0]?.msg || 'Server error');
     } finally {
       setLoading(false);
     }
