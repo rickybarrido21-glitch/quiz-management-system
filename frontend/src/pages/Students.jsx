@@ -77,27 +77,19 @@ const Students = () => {
 
   const fetchClassInfo = async () => {
     try {
-      const token = localStorage.getItem('token');
-      const response = await axios.get(`/api/classes/${classId}`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      const response = await api.get(`/classes/${classId}`);
       setClassInfo(response.data);
     } catch (err) {
       setError('Failed to load class information');
-      console.error('Error fetching class info:', err);
     }
   };
 
   const fetchEnrolledStudents = async () => {
     try {
-      const token = localStorage.getItem('token');
-      const response = await axios.get(`/api/classes/${classId}`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      const response = await api.get(`/classes/${classId}`);
       setEnrolledStudents(response.data.enrolledStudents || []);
     } catch (err) {
       setError('Failed to load enrolled students');
-      console.error('Error fetching enrolled students:', err);
     } finally {
       setLoading(false);
     }
@@ -105,11 +97,8 @@ const Students = () => {
 
   const fetchPendingRequests = async () => {
     try {
-      const token = localStorage.getItem('token');
-      const response = await axios.get(`/api/classes/${classId}/enrollment-requests?status=pending`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      setPendingRequests(response.data);
+      const response = await api.get(`/classes/${classId}/enrollment-requests?status=pending`);
+      setPendingRequests(response.data.requests || response.data || []);
     } catch (err) {
       console.error('Error fetching pending requests:', err);
     }
@@ -117,12 +106,7 @@ const Students = () => {
 
   const handleApproveRequest = async (requestId) => {
     try {
-      const token = localStorage.getItem('token');
-      await axios.patch(`/api/classes/enrollment-requests/${requestId}`, 
-        { status: 'approved' },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-      
+      await api.patch(`/classes/enrollment-requests/${requestId}`, { status: 'approved' });
       fetchEnrolledStudents();
       fetchPendingRequests();
     } catch (err) {
@@ -132,15 +116,10 @@ const Students = () => {
 
   const handleRejectRequest = async () => {
     try {
-      const token = localStorage.getItem('token');
-      await axios.patch(`/api/classes/enrollment-requests/${rejectionDialog.requestId}`, 
-        { 
-          status: 'rejected',
-          rejectionReason: rejectionReason 
-        },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-      
+      await api.patch(`/classes/enrollment-requests/${rejectionDialog.requestId}`, {
+        status: 'rejected',
+        rejectionReason: rejectionReason
+      });
       fetchPendingRequests();
       setRejectionDialog({ open: false, requestId: null });
       setRejectionReason('');
@@ -151,13 +130,8 @@ const Students = () => {
 
   const handleRemoveStudent = async (studentId) => {
     if (!window.confirm('Are you sure you want to remove this student from the class?')) return;
-    
     try {
-      const token = localStorage.getItem('token');
-      await axios.delete(`/api/classes/${classId}/students/${studentId}`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      
+      await api.delete(`/classes/${classId}/students/${studentId}`);
       fetchEnrolledStudents();
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to remove student');

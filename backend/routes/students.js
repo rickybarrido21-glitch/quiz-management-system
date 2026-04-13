@@ -10,7 +10,7 @@ const { sendEnrollmentNotification } = require('../utils/emailService');
 
 const router = express.Router();
 
-// Class Enrollment with Class Code (Requirements 5.1, 5.2, 5.3, 5.4, 5.5, 5.6)
+// Class Enrollment with Class Code
 router.post('/enroll', [
   auth,
   body('classCode').trim().isLength({ min: 1 }).withMessage('Class code is required')
@@ -18,85 +18,50 @@ router.post('/enroll', [
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-      return res.status(400).json({ 
-        success: false,
-        errors: errors.array()
-      });
+      return res.status(400).json({ success: false, errors: errors.array() });
     }
 
     const { classCode } = req.body;
-    const studentId = req.user.userId;
+    const userId = req.user.userId;
 
-    // Verify user is a student
-    const student = await User.findById(studentId);
-    if (!student || student.role !== 'student') {
-      return res.status(403).json({ 
-        success: false,
-        message: 'Only students can enroll in classes' 
-      });
+    // Support both Student model (APK) and User model (web)
+    let student = await Student.findById(userId);
+    if (!student) {
+      // Try User model with student role
+      const user = await User.findById(userId);
+      if (!user || user.role !== 'student') {
+        return res.status(403).json({ success: false, message: 'Only students can enroll in classes' });
+      }
     }
 
-    if (!student.isEmailVerified) {
-      return res.status(403).json({ 
-        success: false,
-        message: 'Please verify your email before enrolling in classes' 
-      });
-    }
-
-    // Find class by class code (Requirement 5.4 - Invalid class code error handling)
-    const classObj = await Class.findOne({ 
-      classCode: classCode.toUpperCase(), 
-      isActive: true 
+    // Find class by class code
+    const classObj = await Class.findOne({
+      classCode: classCode.toUpperCase(),
+      isActive: true
     }).populate('teacherId', 'fullName email');
 
     if (!classObj) {
-      return res.status(404).json({ 
-        success: false,
-        message: 'Invalid class code. Please check the code and try again.' 
-      });
+      return res.status(404).json({ success: false, message: 'Invalid class code. Please check the code and try again.' });
     }
 
-    // Check for existing enrollment request (Requirement 5.5 - Prevent duplicate enrollment)
-    const existingRequest = await EnrollmentRequest.findOne({
-      studentId: studentId,
-      classId: classObj._id
-    });
-
+    // Check for existing enrollment request
+    const existingRequest = await EnrollmentRequest.findOne({ studentId: userId, classId: classObj._id });
     if (existingRequest) {
       let message = 'You have already requested to join this class.';
-      if (existingRequest.status === 'approved') {
-        message = 'You are already enrolled in this class.';
-      } else if (existingRequest.status === 'rejected') {
-        message = 'Your previous enrollment request was rejected.';
-        if (existingRequest.rejectionReason) {
-          message += ` Reason: ${existingRequest.rejectionReason}`;
-        }
-      }
-      
-      return res.status(400).json({ 
-        success: false,
-        message: message,
-        status: existingRequest.status
-      });
+      if (existingRequest.status === 'approved') message = 'You are already enrolled in this class.';
+      else if (existingRequest.status === 'rejected') message = 'Your previous enrollment request was rejected.';
+      return res.status(400).json({ success: false, message, status: existingRequest.status });
     }
 
-    // Create enrollment request (Requirement 5.2)
-    const enrollmentRequest = new EnrollmentRequest({
-      studentId: studentId,
-      classId: classObj._id,
-      status: 'pending'
-    });
-
+    // Create enrollment request
+    const enrollmentRequest = new EnrollmentRequest({ studentId: userId, classId: classObj._id, status: 'pending' });
     await enrollmentRequest.save();
 
-    // Send notification to teacher (Requirement 5.6)
-    if (classObj.teacherId && classObj.teacherId.email) {
-      const className = `${classObj.courseCode} - ${classObj.courseDescription} (${classObj.year} ${classObj.section})`;
-      await sendEnrollmentNotification(
-        classObj.teacherId.email, 
-        student.fullName, 
-        className
-      );
+    // Notify teacher
+    if (classObj.teacherId?.email) {
+      const studentName = student ? student.fullName : 'A student';
+      const className = `${classObj.courseCode} - ${classObj.courseDescription}`;
+      await sendEnrollmentNotification(classObj.teacherId.email, studentName, className).catch(() => {});
     }
 
     res.status(201).json({
@@ -105,23 +70,18 @@ router.post('/enroll', [
       enrollmentRequest: {
         id: enrollmentRequest._id,
         status: enrollmentRequest.status,
-        requestedAt: enrollmentRequest.requestedAt,
         class: {
           id: classObj._id,
           courseCode: classObj.courseCode,
           courseDescription: classObj.courseDescription,
           year: classObj.year,
-          section: classObj.section,
-          teacher: classObj.teacherId.fullName
+          section: classObj.section
         }
       }
     });
   } catch (error) {
     console.error('Enrollment error:', error);
-    res.status(500).json({ 
-      success: false,
-      message: 'Server error during enrollment' 
-    });
+    res.status(500).json({ success: false, message: 'Server error during enrollment' });
   }
 });
 
