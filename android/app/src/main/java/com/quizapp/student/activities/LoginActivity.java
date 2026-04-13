@@ -78,17 +78,15 @@ public class LoginActivity extends AppCompatActivity {
 
         ApiService.StudentLoginRequest request = new ApiService.StudentLoginRequest(studentId, deviceId);
         
-        Call<ApiService.ApiResponse<Student>> call = apiService.loginStudent(request);
-        call.enqueue(new Callback<ApiService.ApiResponse<Student>>() {
+        Call<ApiService.StudentLoginResponse> call = apiService.loginStudent(request);
+        call.enqueue(new Callback<ApiService.StudentLoginResponse>() {
             @Override
-            public void onResponse(Call<ApiService.ApiResponse<Student>> call, Response<ApiService.ApiResponse<Student>> response) {
+            public void onResponse(Call<ApiService.StudentLoginResponse> call, Response<ApiService.StudentLoginResponse> response) {
                 setLoading(false);
 
                 if (response.isSuccessful() && response.body() != null) {
-                    ApiService.ApiResponse<Student> apiResponse = response.body();
-
-                    // Backend returns { student: {...} } — check both student and data fields
-                    Student student = apiResponse.student != null ? apiResponse.student : apiResponse.data;
+                    ApiService.StudentLoginResponse loginResponse = response.body();
+                    Student student = loginResponse.student;
 
                     if (student != null) {
                         preferenceManager.setLoggedIn(true);
@@ -100,14 +98,14 @@ public class LoginActivity extends AppCompatActivity {
                             student.getSection()
                         );
                         // Save token and set in ApiClient
-                        if (apiResponse.token != null) {
-                            preferenceManager.setToken(apiResponse.token);
-                            ApiClient.setAuthToken(apiResponse.token);
+                        if (loginResponse.token != null) {
+                            preferenceManager.setToken(loginResponse.token);
+                            ApiClient.setAuthToken(loginResponse.token);
                         }
                         Toast.makeText(LoginActivity.this, "Login successful!", Toast.LENGTH_SHORT).show();
                         navigateToMain();
                     } else {
-                        showError(apiResponse.message != null ? apiResponse.message : "Login failed");
+                        showError(loginResponse.message != null ? loginResponse.message : "Login failed");
                     }
                 } else {
                     try {
@@ -128,7 +126,7 @@ public class LoginActivity extends AppCompatActivity {
             }
 
             @Override
-            public void onFailure(Call<ApiService.ApiResponse<Student>> call, Throwable t) {
+            public void onFailure(Call<ApiService.StudentLoginResponse> call, Throwable t) {
                 setLoading(false);
                 showError("Network error: " + t.getMessage());
             }

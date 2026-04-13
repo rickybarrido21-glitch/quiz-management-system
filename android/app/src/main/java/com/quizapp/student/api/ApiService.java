@@ -20,9 +20,15 @@ public interface ApiService {
     // Student Authentication
     @POST("students/register")
     Call<ApiResponse<Student>> registerStudent(@Body StudentRegistrationRequest request);
-    
+
     @POST("students/login")
-    Call<ApiResponse<Student>> loginStudent(@Body StudentLoginRequest request);
+    Call<StudentLoginResponse> loginStudent(@Body StudentLoginRequest request);
+
+    class StudentLoginResponse {
+        public String token;
+        public Student student;
+        public String message;
+    }
     
     @GET("students/{studentId}")
     Call<Student> getStudentProfile(@Path("studentId") String studentId);
