@@ -18,7 +18,7 @@ router.get('/', auth, async (req, res) => {
 
     const classes = await Class.find(query)
       .populate('schoolYearId', 'year')
-      .populate('enrolledStudents', 'studentId fullName email')
+      .populate({ path: 'enrolledStudents', model: 'Student', select: 'studentId fullName email course year section' })
       .sort({ createdAt: -1 });
 
     res.json(classes);
@@ -96,7 +96,7 @@ router.get('/:id', auth, async (req, res) => {
 
     const classData = await Class.findOne({ _id: id, teacherId: req.user.userId })
       .populate('schoolYearId', 'year')
-      .populate('enrolledStudents', 'studentId fullName email');
+      .populate({ path: 'enrolledStudents', model: 'Student', select: 'studentId fullName email course year section' });
 
     if (!classData) {
       return res.status(404).json({ message: 'Class not found' });

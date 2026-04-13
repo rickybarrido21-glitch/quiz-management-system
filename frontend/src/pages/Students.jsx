@@ -87,6 +87,7 @@ const Students = () => {
   const fetchEnrolledStudents = async () => {
     try {
       const response = await api.get(`/classes/${classId}`);
+      // enrolledStudents is now populated with Student model data
       setEnrolledStudents(response.data.enrolledStudents || []);
     } catch (err) {
       setError('Failed to load enrolled students');
