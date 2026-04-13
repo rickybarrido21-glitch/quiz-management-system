@@ -174,7 +174,12 @@ public class MainActivity extends AppCompatActivity implements SubjectAdapter.On
             @Override
             public void onResponse(Call<ApiService.ApiResponse<String>> call, Response<ApiService.ApiResponse<String>> response) {
                 if (response.isSuccessful()) {
-                    Toast.makeText(MainActivity.this, getString(R.string.success_join_class), Toast.LENGTH_SHORT).show();
+                    // Show success dialog
+                    new androidx.appcompat.app.AlertDialog.Builder(MainActivity.this)
+                        .setTitle("✅ Request Submitted!")
+                        .setMessage("Your enrollment request has been sent successfully.\n\nPlease wait for your teacher to approve your request before you can access the class.")
+                        .setPositiveButton("OK", null)
+                        .show();
                     loadSubjects();
                 } else {
                     try {

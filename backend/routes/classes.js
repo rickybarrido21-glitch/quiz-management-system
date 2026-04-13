@@ -201,28 +201,29 @@ router.get('/:id/enrollment-requests', [auth, teacherOrAdmin], async (req, res) 
     }
 
     const requests = await EnrollmentRequest.find({ classId: id, status })
-      .populate('studentId', 'studentId fullName email isEmailVerified')
+      .populate({ path: 'studentId', model: 'Student', select: 'studentId fullName email course year section' })
       .sort({ requestedAt: -1 });
 
-    const formattedRequests = requests.map(request => ({
-      id: request._id,
-      status: request.status,
-      requestedAt: request.requestedAt,
-      processedAt: request.processedAt,
-      rejectionReason: request.rejectionReason,
-      student: {
-        id: request.studentId._id,
-        studentId: request.studentId.studentId,
-        fullName: request.studentId.fullName,
-        email: request.studentId.email,
-        isEmailVerified: request.studentId.isEmailVerified
-      }
-    }));
-
-    res.json({
-      success: true,
-      requests: formattedRequests
+    const formattedRequests = requests.map(request => {
+      const s = request.studentId;
+      return {
+        _id: request._id,
+        status: request.status,
+        requestedAt: request.requestedAt,
+        rejectionReason: request.rejectionReason,
+        studentId: {
+          _id: s?._id,
+          studentId: s?.studentId,
+          fullName: s?.fullName,
+          email: s?.email,
+          course: s?.course,
+          year: s?.year,
+          section: s?.section
+        }
+      };
     });
+
+    res.json({ success: true, requests: formattedRequests });
   } catch (error) {
     console.error('Get enrollment requests error:', error);
     res.status(500).json({ message: 'Server error', error: error.message });
@@ -241,7 +242,7 @@ router.patch('/enrollment-requests/:requestId', [auth, teacherOrAdmin], async (r
 
     const request = await EnrollmentRequest.findById(requestId)
       .populate('classId')
-      .populate('studentId', 'fullName email');
+      .populate({ path: 'studentId', model: 'Student', select: 'fullName email' });
 
     if (!request) {
       return res.status(404).json({ message: 'Enrollment request not found' });
