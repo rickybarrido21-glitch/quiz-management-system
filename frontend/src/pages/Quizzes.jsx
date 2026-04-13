@@ -55,27 +55,19 @@ const Quizzes = () => {
 
   const fetchClassInfo = async () => {
     try {
-      const token = localStorage.getItem('token');
-      const response = await axios.get(`/api/classes/${classId}`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      const response = await api.get(`/classes/${classId}`);
       setClassInfo(response.data);
     } catch (err) {
       setError('Failed to load class information');
-      console.error('Error fetching class info:', err);
     }
   };
 
   const fetchQuizzes = async () => {
     try {
-      const token = localStorage.getItem('token');
-      const response = await axios.get(`/api/quizzes?classId=${classId}`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      const response = await api.get(`/quizzes?classId=${classId}`);
       setQuizzes(response.data);
     } catch (err) {
       setError('Failed to load quizzes');
-      console.error('Error fetching quizzes:', err);
     } finally {
       setLoading(false);
     }
@@ -83,12 +75,7 @@ const Quizzes = () => {
 
   const handleToggleQuizStatus = async (quizId, currentStatus) => {
     try {
-      const token = localStorage.getItem('token');
-      await axios.patch(`/api/quizzes/${quizId}`, 
-        { isActive: !currentStatus },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-      
+      await api.patch(`/quizzes/${quizId}`, { isActive: !currentStatus });
       fetchQuizzes();
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to update quiz status');
@@ -97,11 +84,7 @@ const Quizzes = () => {
 
   const handleDeleteQuiz = async () => {
     try {
-      const token = localStorage.getItem('token');
-      await axios.delete(`/api/quizzes/${deleteDialog.quizId}`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      
+      await api.delete(`/quizzes/${deleteDialog.quizId}`);
       fetchQuizzes();
       setDeleteDialog({ open: false, quizId: null });
     } catch (err) {

@@ -14,7 +14,7 @@ public class PreferenceManager {
     private static final String KEY_STUDENT_YEAR = "student_year";
     private static final String KEY_STUDENT_SECTION = "student_section";
     private static final String KEY_DEVICE_ID = "device_id";
-    private static final String KEY_API_BASE_URL = "api_base_url";
+    private static final String KEY_TOKEN = "auth_token";
 
     private SharedPreferences sharedPreferences;
     private SharedPreferences.Editor editor;
@@ -91,14 +91,13 @@ public class PreferenceManager {
         return sharedPreferences.getString(KEY_DEVICE_ID, "");
     }
 
-    // API Configuration
-    public void setApiBaseUrl(String baseUrl) {
-        editor.putString(KEY_API_BASE_URL, baseUrl);
+    public void setToken(String token) {
+        editor.putString(KEY_TOKEN, token);
         editor.apply();
     }
 
-    public String getApiBaseUrl() {
-        return sharedPreferences.getString(KEY_API_BASE_URL, "http://10.0.2.2:3000/api/");
+    public String getToken() {
+        return sharedPreferences.getString(KEY_TOKEN, "");
     }
 
     // Clear all data (logout)

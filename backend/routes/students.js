@@ -303,7 +303,16 @@ router.post('/login', [
       await student.save();
     }
 
+    // Generate JWT token for student
+    const jwt = require('jsonwebtoken');
+    const token = jwt.sign(
+      { userId: student._id, studentId: student.studentId, role: 'student' },
+      process.env.JWT_SECRET,
+      { expiresIn: '30d' }
+    );
+
     res.json({
+      token,
       student: {
         id: student._id,
         studentId: student.studentId,

@@ -27,12 +27,16 @@ public interface ApiService {
     @GET("students/{studentId}")
     Call<Student> getStudentProfile(@Path("studentId") String studentId);
     
-    // Subject Management
-    @POST("students/join-subject")
-    Call<ApiResponse<String>> joinSubject(@Body JoinSubjectRequest request);
-    
-    @GET("subjects/by-code/{classCode}")
-    Call<Subject> getSubjectByCode(@Path("classCode") String classCode);
+    // Class Enrollment
+    @POST("students/enroll")
+    Call<ApiService.ApiResponse<String>> joinClass(@Body JoinClassRequest request);
+
+    class JoinClassRequest {
+        public String classCode;
+        public JoinClassRequest(String classCode) {
+            this.classCode = classCode;
+        }
+    }
     
     // Quiz Management
     @GET("quizzes")
@@ -130,8 +134,8 @@ public interface ApiService {
         public String message;
         public T data;
         public boolean success;
-        // Also handle direct student field in response
         public T student;
+        public String token;
     }
 
     class QuizTakeResponse {

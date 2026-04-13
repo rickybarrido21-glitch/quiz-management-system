@@ -1,5 +1,6 @@
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
+const Student = require('../models/Student');
 
 const auth = async (req, res, next) => {
   try {
@@ -10,8 +11,19 @@ const auth = async (req, res, next) => {
     }
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    
-    // Check if user still exists and is active
+
+    // Check if it's a student token
+    if (decoded.role === 'student') {
+      const student = await Student.findById(decoded.userId);
+      if (!student || !student.isActive) {
+        return res.status(401).json({ message: 'Token is not valid' });
+      }
+      req.user = decoded;
+      req.userDoc = student;
+      return next();
+    }
+
+    // Otherwise check User model (teachers/admins)
     const user = await User.findById(decoded.userId).select('-password');
     if (!user || !user.isActive) {
       return res.status(401).json({ message: 'Token is not valid' });

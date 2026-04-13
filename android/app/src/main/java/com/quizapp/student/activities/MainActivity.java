@@ -51,6 +51,12 @@ public class MainActivity extends AppCompatActivity implements SubjectAdapter.On
         // Initialize preferences first
         preferenceManager = new PreferenceManager(this);
 
+        // Restore auth token
+        String savedToken = preferenceManager.getToken();
+        if (savedToken != null && !savedToken.isEmpty()) {
+            ApiClient.setAuthToken(savedToken);
+        }
+
         // Check if user is logged in
         if (!preferenceManager.isLoggedIn()) {
             startActivity(new Intent(this, LoginActivity.class));
@@ -161,25 +167,30 @@ public class MainActivity extends AppCompatActivity implements SubjectAdapter.On
     }
     
     private void joinClass(String classCode) {
-        String studentId = preferenceManager.getStudentId();
-        
-        ApiService.JoinSubjectRequest request = new ApiService.JoinSubjectRequest(studentId, classCode);
-        
-        Call<ApiService.ApiResponse<String>> call = apiService.joinSubject(request);
+        ApiService.JoinClassRequest request = new ApiService.JoinClassRequest(classCode);
+
+        Call<ApiService.ApiResponse<String>> call = apiService.joinClass(request);
         call.enqueue(new Callback<ApiService.ApiResponse<String>>() {
             @Override
             public void onResponse(Call<ApiService.ApiResponse<String>> call, Response<ApiService.ApiResponse<String>> response) {
-                if (response.isSuccessful() && response.body() != null) {
-                    ApiService.ApiResponse<String> apiResponse = response.body();
-                    
-                    if (apiResponse.success) {
-                        Toast.makeText(MainActivity.this, getString(R.string.success_join_class), Toast.LENGTH_SHORT).show();
-                        loadSubjects(); // Refresh the subjects list
-                    } else {
-                        Toast.makeText(MainActivity.this, apiResponse.message, Toast.LENGTH_SHORT).show();
-                    }
+                if (response.isSuccessful()) {
+                    Toast.makeText(MainActivity.this, getString(R.string.success_join_class), Toast.LENGTH_SHORT).show();
+                    loadSubjects();
                 } else {
-                    Toast.makeText(MainActivity.this, getString(R.string.error_join_class), Toast.LENGTH_SHORT).show();
+                    try {
+                        String errorBody = response.errorBody() != null ? response.errorBody().string() : "";
+                        if (errorBody.contains("\"message\"")) {
+                            int start = errorBody.indexOf("\"message\"") + 11;
+                            int end = errorBody.indexOf("\"", start + 1);
+                            if (end > start) {
+                                Toast.makeText(MainActivity.this, errorBody.substring(start, end), Toast.LENGTH_LONG).show();
+                                return;
+                            }
+                        }
+                        Toast.makeText(MainActivity.this, getString(R.string.error_join_class), Toast.LENGTH_SHORT).show();
+                    } catch (Exception e) {
+                        Toast.makeText(MainActivity.this, getString(R.string.error_join_class), Toast.LENGTH_SHORT).show();
+                    }
                 }
             }
 
