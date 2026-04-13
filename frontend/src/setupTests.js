@@ -1,0 +1,1 @@
+const { setupTests } = require('@testing-library/jest-dom');

@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Primary Colors -->
+    <color name="primary">#667eea</color>
+    <color name="primary_dark">#764ba2</color>
+    <color name="primary_light">#a8b5ff</color>
+    
+    <!-- Secondary Colors -->
+    <color name="secondary">#21CBF3</color>
+    <color name="secondary_dark">#2196F3</color>
+    <color name="secondary_light">#64d8f7</color>
+    
+    <!-- Background Colors -->
+    <color name="background">#f5f7fa</color>
+    <color name="surface">#ffffff</color>
+    <color name="surface_variant">#f8f9fa</color>
+    
+    <!-- Text Colors -->
+    <color name="text_primary">#212529</color>
+    <color name="text_secondary">#6c757d</color>
+    <color name="text_hint">#adb5bd</color>
+    
+    <!-- Status Colors -->
+    <color name="success">#4caf50</color>
+    <color name="warning">#ff9800</color>
+    <color name="error">#f44336</color>
+    <color name="info">#2196f3</color>
+    
+    <!-- Quiz Colors -->
+    <color name="quiz_correct">#4caf50</color>
+    <color name="quiz_incorrect">#f44336</color>
+    <color name="quiz_selected">#e3f2fd</color>
+    <color name="quiz_timer">#ff5722</color>
+    
+    <!-- Gradient Colors -->
+    <color name="gradient_start">#667eea</color>
+    <color name="gradient_end">#764ba2</color>
+    
+    <!-- Common Colors -->
+    <color name="white">#ffffff</color>
+    <color name="black">#000000</color>
+    <color name="transparent">#00000000</color>
+    <color name="semi_transparent">#80000000</color>
+</resources>
