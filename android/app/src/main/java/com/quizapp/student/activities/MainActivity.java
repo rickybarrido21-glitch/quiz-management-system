@@ -237,7 +237,9 @@ public class MainActivity extends AppCompatActivity implements SubjectAdapter.On
     @Override
     protected void onResume() {
         super.onResume();
-        securityManager.checkSecurityViolations();
+        if (securityManager != null) {
+            securityManager.checkSecurityViolations();
+        }
     }
     
     @Override
