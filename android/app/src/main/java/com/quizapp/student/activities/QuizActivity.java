@@ -65,20 +65,22 @@ public class QuizActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        
-        // Initialize security first
-        securityManager = new SecurityManager(this);
-        securityManager.enableQuizMode();
-        
+
+        // Set content view first
         setContentView(R.layout.activity_quiz);
-        
-        initViews();
-        setupSecurity();
-        loadQuizData();
-        
+
+        // Initialize all dependencies before using them
         preferenceManager = new PreferenceManager(this);
         apiService = ApiClient.getClient().create(ApiService.class);
         answers = new HashMap<>();
+
+        // Initialize security after setContentView
+        securityManager = new SecurityManager(this);
+        securityManager.enableQuizMode();
+
+        initViews();
+        setupSecurity();
+        loadQuizData();
     }
 
     private void initViews() {
