@@ -50,10 +50,9 @@ public class SecurityManager {
         if (!isSecurityEnabled) {
             enableSecurityFeatures();
         }
-        
         // Additional quiz-specific security
         preventTaskSwitching();
-        showSecurityOverlay();
+        // Note: system overlay removed — FLAG_SECURE already prevents screenshots/recording
     }
 
     public void disableQuizMode() {
