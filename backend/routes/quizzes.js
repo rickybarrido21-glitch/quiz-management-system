@@ -26,6 +26,10 @@ router.get('/', auth, async (req, res) => {
         status: 'approved'
       });
       if (!enrollment) {
+        // Log for debugging
+        console.log(`Student ${req.user.userId} not enrolled in class ${classId}`);
+        const allEnrollments = await EnrollmentRequest.find({ studentId: req.user.userId });
+        console.log(`Student enrollments:`, allEnrollments.map(e => ({ classId: e.classId, status: e.status })));
         return res.status(403).json({ message: 'You are not enrolled in this class' });
       }
       classData = await Class.findById(classId);
@@ -38,8 +42,8 @@ router.get('/', auth, async (req, res) => {
     }
 
     const query = { classId };
-    // Students only see active quizzes
-    if (req.user.role === 'student') query.isActive = true;
+    // Remove isActive filter - let students see all quizzes in their enrolled class
+    // Teachers can see all, students can see all quizzes for their class
 
     const quizzes = await Quiz.find(query)
       .populate('teacherId', 'fullName email')
