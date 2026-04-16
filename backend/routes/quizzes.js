@@ -49,13 +49,18 @@ router.get('/', auth, async (req, res) => {
       .populate('teacherId', 'fullName email')
       .sort({ createdAt: -1 });
 
-    // Transform for Android: convert options String[] -> {text}[], add settings wrapper
+    // Transform for Android: convert options String[] -> {text}[], add settings wrapper,
+    // and ensure no string-typed fields conflict with Android object-typed fields
     const transformed = quizzes.map(q => {
       const obj = q.toObject();
       obj.settings = {
         timeLimit: obj.timeLimit || 15,
         randomizeQuestions: obj.randomizeQuestions || false
       };
+      // Remove fields that Android doesn't have or that could cause type conflicts
+      delete obj.classId;
+      delete obj.teacherId;
+      delete obj.subject;
       if (Array.isArray(obj.questions)) {
         obj.questions = obj.questions.map(question => {
           if (Array.isArray(question.options) && question.options.length > 0 && typeof question.options[0] === 'string') {
@@ -98,6 +103,11 @@ router.get('/:id/take', auth, async (req, res) => {
       timeLimit: quizObj.timeLimit || 15,
       randomizeQuestions: quizObj.randomizeQuestions || false
     };
+
+    // Remove fields that could cause Gson type conflicts on Android
+    delete quizObj.classId;
+    delete quizObj.teacherId;
+    delete quizObj.subject;
 
     // Transform questions: convert options from String[] to {text, isCorrect}[]
     // and strip correctAnswer so students can't see answers
