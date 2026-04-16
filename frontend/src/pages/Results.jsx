@@ -32,7 +32,6 @@ import {
   Cancel as CancelIcon
 } from '@mui/icons-material';
 import api from '../services/api';
-import axios from 'axios';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 
 const Results = () => {
@@ -51,15 +50,14 @@ const Results = () => {
     if (quizId) {
       fetchQuizResults();
       fetchQuizStatistics();
+    } else {
+      setLoading(false);
     }
   }, [quizId]);
 
   const fetchQuizResults = async () => {
     try {
-      const token = localStorage.getItem('token');
-      const response = await axios.get(`/api/quizzes/${quizId}/results`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      const response = await api.get(`/quizzes/${quizId}/results`);
       setQuiz(response.data.quiz);
       setResults(response.data.results);
     } catch (err) {
@@ -72,10 +70,7 @@ const Results = () => {
 
   const fetchQuizStatistics = async () => {
     try {
-      const token = localStorage.getItem('token');
-      const response = await axios.get(`/api/quizzes/${quizId}/statistics`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      const response = await api.get(`/quizzes/${quizId}/statistics`);
       setStatistics(response.data);
     } catch (err) {
       console.error('Error fetching quiz statistics:', err);
@@ -84,9 +79,7 @@ const Results = () => {
 
   const exportResults = async () => {
     try {
-      const token = localStorage.getItem('token');
-      const response = await axios.get(`/api/quizzes/${quizId}/export`, {
-        headers: { Authorization: `Bearer ${token}` },
+      const response = await api.get(`/quizzes/${quizId}/export`, {
         responseType: 'blob'
       });
       
@@ -117,8 +110,6 @@ const Results = () => {
     return maxScore > 0 ? Math.round((score / maxScore) * 100) : 0;
   };
 
-  if (loading) return <Typography>Loading...</Typography>;
-
   if (!quizId) {
     return (
       <Container maxWidth="lg">
@@ -128,6 +119,8 @@ const Results = () => {
       </Container>
     );
   }
+
+  if (loading) return <Typography sx={{ p: 3 }}>Loading...</Typography>;
 
   return (
     <Container maxWidth="lg">
