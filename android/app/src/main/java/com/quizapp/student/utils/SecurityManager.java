@@ -123,17 +123,20 @@ public class SecurityManager {
     }
 
     private boolean isAppInBackground() {
-        ActivityManager activityManager = (ActivityManager) activity.getSystemService(Context.ACTIVITY_SERVICE);
-        List<ActivityManager.RunningAppProcessInfo> appProcesses = activityManager.getRunningAppProcesses();
-        
-        if (appProcesses != null) {
+        try {
+            ActivityManager activityManager = (ActivityManager) activity.getSystemService(Context.ACTIVITY_SERVICE);
+            if (activityManager == null) return false;
+            List<ActivityManager.RunningAppProcessInfo> appProcesses = activityManager.getRunningAppProcesses();
+            if (appProcesses == null) return false;
             final String packageName = activity.getPackageName();
             for (ActivityManager.RunningAppProcessInfo appProcess : appProcesses) {
-                if (appProcess.importance == ActivityManager.RunningAppProcessInfo.IMPORTANCE_FOREGROUND 
-                    && appProcess.processName.equals(packageName)) {
+                if (appProcess.importance == ActivityManager.RunningAppProcessInfo.IMPORTANCE_FOREGROUND
+                        && appProcess.processName.equals(packageName)) {
                     return false;
                 }
             }
+        } catch (Exception e) {
+            return false; // Fail safe - don't trigger violation
         }
         return true;
     }

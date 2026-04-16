@@ -65,8 +65,9 @@ public class MainActivity extends AppCompatActivity implements SubjectAdapter.On
         }
 
         // Initialize security after setContentView
+        // Note: Full security (screenshot prevention) only needed during quiz
         securityManager = new SecurityManager(this);
-        securityManager.enableSecurityFeatures();
+        // Don't enable security features on main screen - only on quiz screen
 
         initViews();
         setupRecyclerView();
@@ -237,9 +238,7 @@ public class MainActivity extends AppCompatActivity implements SubjectAdapter.On
     @Override
     protected void onResume() {
         super.onResume();
-        if (securityManager != null) {
-            securityManager.checkSecurityViolations();
-        }
+        // Security checks only needed during quiz, not on main screen
     }
     
     @Override
