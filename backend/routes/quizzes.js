@@ -49,7 +49,25 @@ router.get('/', auth, async (req, res) => {
       .populate('teacherId', 'fullName email')
       .sort({ createdAt: -1 });
 
-    res.json(quizzes);
+    // Transform for Android: convert options String[] -> {text}[], add settings wrapper
+    const transformed = quizzes.map(q => {
+      const obj = q.toObject();
+      obj.settings = {
+        timeLimit: obj.timeLimit || 15,
+        randomizeQuestions: obj.randomizeQuestions || false
+      };
+      if (Array.isArray(obj.questions)) {
+        obj.questions = obj.questions.map(question => {
+          if (Array.isArray(question.options) && question.options.length > 0 && typeof question.options[0] === 'string') {
+            question.options = question.options.map(text => ({ text }));
+          }
+          return question;
+        });
+      }
+      return obj;
+    });
+
+    res.json(transformed);
   } catch (error) {
     res.status(500).json({ message: 'Server error', error: error.message });
   }
