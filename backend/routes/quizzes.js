@@ -49,6 +49,21 @@ router.get('/', auth, async (req, res) => {
       .populate('teacherId', 'fullName email')
       .sort({ createdAt: -1 });
 
+    // For students, check which quizzes they've already completed
+    let completedQuizIds = new Set();
+    if (req.user.role === 'student') {
+      const QuizResult = require('../models/QuizResult');
+      const Student = require('../models/Student');
+      const student = await Student.findOne({ studentId: req.user.userId });
+      if (student) {
+        const completedResults = await QuizResult.find({
+          student: student._id,
+          quiz: { $in: quizzes.map(q => q._id) }
+        }).select('quiz');
+        completedResults.forEach(r => completedQuizIds.add(r.quiz.toString()));
+      }
+    }
+
     // Transform for Android: convert options String[] -> {text}[], add settings wrapper,
     // and ensure no string-typed fields conflict with Android object-typed fields
     const transformed = quizzes.map(q => {
@@ -57,6 +72,7 @@ router.get('/', auth, async (req, res) => {
         timeLimit: obj.timeLimit || 15,
         randomizeQuestions: obj.randomizeQuestions || false
       };
+      obj.isCompleted = completedQuizIds.has(obj._id.toString());
       // Remove fields that Android doesn't have or that could cause type conflicts
       delete obj.classId;
       delete obj.teacherId;

@@ -144,6 +144,7 @@
 
             <!-- Start Button -->
             <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnStartQuiz"
                 android:layout_width="wrap_content"
                 android:layout_height="36dp"
                 android:text="Start"
@@ -152,6 +153,19 @@
                 app:cornerRadius="18dp"
                 app:strokeColor="@color/primary"
                 android:textColor="@color/primary" />
+
+            <!-- Completed badge (hidden by default) -->
+            <com.google.android.material.chip.Chip
+                android:id="@+id/chipCompleted"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="✓ Completed"
+                android:textSize="12sp"
+                android:textColor="@color/white"
+                app:chipBackgroundColor="@color/success"
+                android:visibility="gone"
+                android:clickable="false"
+                android:focusable="false" />
 
         </LinearLayout>
 

@@ -24,7 +24,10 @@ public class Quiz {
     
     @SerializedName("isActive")
     private boolean isActive;
-    
+
+    @SerializedName("isCompleted")
+    private boolean isCompleted;
+
     @SerializedName("startDate")
     private String startDate;
     
@@ -52,6 +55,9 @@ public class Quiz {
 
     public boolean isActive() { return isActive; }
     public void setActive(boolean active) { isActive = active; }
+
+    public boolean isCompleted() { return isCompleted; }
+    public void setCompleted(boolean completed) { isCompleted = completed; }
 
     public String getStartDate() { return startDate; }
     public void setStartDate(String startDate) { this.startDate = startDate; }
