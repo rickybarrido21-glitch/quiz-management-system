@@ -32,6 +32,7 @@ import {
   Cancel as CancelIcon
 } from '@mui/icons-material';
 import api from '../services/api';
+import axios from 'axios';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 
 const Results = () => {

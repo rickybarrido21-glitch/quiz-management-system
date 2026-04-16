@@ -55,7 +55,7 @@ public interface ApiService {
     
     // Quiz Management
     @GET("quizzes")
-    Call<List<Quiz>> getQuizzes(@Query("subjectId") String subjectId);
+    Call<List<Quiz>> getQuizzes(@Query("classId") String classId);
     
     @GET("quizzes/{id}/take")
     Call<QuizTakeResponse> getQuizForTaking(@Path("id") String quizId, @Query("studentId") String studentId);
